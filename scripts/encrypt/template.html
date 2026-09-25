@@ -1,0 +1,95 @@
+<!doctype html>
+<html class="staticrypt-html" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Yorro, protected page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Domine:wght@700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --brand: #1C2340; --accent: #F0A422; --accent-press: #D8921E;
+        --bg: #F0EFED; --card: #FFFFFF; --text: #3C4566; --muted: #7A8099;
+        --border: #E4E3DF; --danger: #B4423A;
+        --font: Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      html, body { height: 100%; }
+      body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+      .staticrypt-spinner-container { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 10; }
+      .staticrypt-spinner { width: 2rem; height: 2rem; border: 3px solid var(--border); border-right-color: var(--accent); border-radius: 50%; animation: spin .75s linear infinite; }
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+      .staticrypt-content { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 16px; gap: 32px; }
+      .logo { font-family: Domine, Georgia, serif; font-weight: 700; font-size: 28px; color: var(--brand); user-select: none; }
+      .logo .slash { color: var(--accent); }
+      .card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px 28px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 2px 16px rgba(28,35,64,.07); }
+      .card-header { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+      .card-label { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+      .card-subtitle { font-size: 15px; line-height: 1.6; }
+      #staticrypt-form { display: flex; flex-direction: column; gap: 14px; }
+      #staticrypt-password { width: 100%; background: #F7F6F4; border: 1px solid var(--border); border-radius: 10px; color: var(--brand); font-family: var(--font); font-size: 16px; padding: 13px 16px; outline: none; -webkit-appearance: none; }
+      #staticrypt-password:focus { border-color: var(--brand); background: #fff; }
+      .show { align-self: flex-start; background: none; border: 0; color: var(--muted); font: 600 13px var(--font); cursor: pointer; padding: 0; }
+      .error { color: var(--danger); font-size: 14px; font-weight: 600; }
+      .staticrypt-decrypt-button { width: 100%; background: var(--accent); color: var(--brand); font: 700 16px var(--font); border: none; border-radius: 999px; padding: 14px 24px; cursor: pointer; -webkit-appearance: none; }
+      .staticrypt-decrypt-button:hover { background: var(--accent-press); }
+      label.staticrypt-remember { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--muted); }
+      .footer { font-size: 13px; color: var(--muted); }
+      .hidden { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <div id="staticrypt_loading" class="staticrypt-spinner-container"><div class="staticrypt-spinner"></div></div>
+    <div id="staticrypt_content" class="staticrypt-content hidden">
+      <div class="logo"><span class="slash">/</span>yorro</div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-label">Private page</div>
+          <p class="card-subtitle">Enter the password Yorro sent you to open this page.</p>
+        </div>
+        <form id="staticrypt-form" action="#" method="post">
+          <input id="staticrypt-password" type="password" name="password" placeholder="Password" autocomplete="off" autofocus />
+          <button type="button" class="show" id="show">Show password</button>
+          <p class="error hidden" id="error">That password did not work. Check it and try again.</p>
+          <label id="staticrypt-remember-label" class="staticrypt-remember hidden">
+            <input id="staticrypt-remember" type="checkbox" name="remember" /> Keep me signed in
+          </label>
+          <input type="submit" class="staticrypt-decrypt-button" value="Open" />
+        </form>
+      </div>
+      <div class="footer">AI training and transformation for marketing agencies.</div>
+    </div>
+    <script>
+      const staticryptInitiator = /*[|js_staticrypt|]*/ 0;
+      const isRememberEnabled = /*[|is_remember_enabled|]*/ 0,
+        staticryptConfig = /*[|staticrypt_config|]*/ 0;
+      const templateConfig = { rememberExpirationKey: "staticrypt_expiration", rememberPassphraseKey: "staticrypt_passphrase", replaceHtmlCallback: null, clearLocalStorageCallback: null };
+      const staticrypt = staticryptInitiator.init(staticryptConfig, templateConfig);
+      window.onload = async function () {
+        const { isSuccessful } = await staticrypt.handleDecryptOnLoad();
+        if (!isSuccessful) {
+          document.getElementById("staticrypt_loading").classList.add("hidden");
+          document.getElementById("staticrypt_content").classList.remove("hidden");
+          document.getElementById("staticrypt-password").focus();
+          if (isRememberEnabled) document.getElementById("staticrypt-remember-label").classList.remove("hidden");
+        }
+      };
+      const input = document.getElementById("staticrypt-password"), show = document.getElementById("show");
+      show.addEventListener("click", function () {
+        const hidden = input.type === "password";
+        input.type = hidden ? "text" : "password";
+        show.textContent = hidden ? "Hide password" : "Show password";
+      });
+      document.getElementById("staticrypt-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const { isSuccessful } = await staticrypt.handleDecryptionOfPage(input.value, document.getElementById("staticrypt-remember").checked);
+        if (!isSuccessful) document.getElementById("error").classList.remove("hidden");
+      });
+    </script>
+  </body>
+</html>
