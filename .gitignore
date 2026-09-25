@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Secrets - never commit these
+.env
+.env.*
+
+# In-tray: readable reports waiting to be encrypted, never pushed
+to-encrypt/
