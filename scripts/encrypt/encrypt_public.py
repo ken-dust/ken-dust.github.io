@@ -10,6 +10,9 @@ Password strategy: derived passwords
   - Each client gets one password for all its reports — one client's password opens nothing of another's
   - A file directly in to-encrypt/, outside a client folder, is refused
   - Deterministic: you can always regenerate any password from secret + client folder name
+  - A group folder (GROUP_FOLDERS, e.g. demo/) holds one folder per business: there the
+    password key is the first two folders (to-encrypt/demo/acme/index.html -> demo/acme), so
+    every business in the group gets its own password
   - The secret never touches the repo, and this script never prints it
 
 Usage:
@@ -48,6 +51,13 @@ if _env_file.exists():
 SOURCE_DIR = WORKSPACE / "to-encrypt"
 OUTPUT_DIR = WORKSPACE / "docs"
 TEMPLATE   = Path(__file__).parent / "template.html"
+# Folders that hold one folder per business rather than one client's reports.
+GROUP_FOLDERS = {"demo"}
+
+
+def client_key(rel: str) -> str:
+    parts = Path(rel).parts
+    return "/".join(parts[:2]) if parts[0] in GROUP_FOLDERS else parts[0]
 
 
 def derive_password(master_secret: str, relative_path: str) -> str:
@@ -128,12 +138,13 @@ def main():
         print(f"No HTML files to process in {SOURCE_DIR}")
         sys.exit(0)
 
-    loose = [rel_paths[f] for f in html_files if len(Path(rel_paths[f]).parts) < 2]
+    loose = [rel_paths[f] for f in html_files
+             if len(Path(rel_paths[f]).parts) < (3 if Path(rel_paths[f]).parts[0] in GROUP_FOLDERS else 2)]
     if loose:
         print(f"ERROR: file(s) outside a client folder: {', '.join(loose)}. Move each into to-encrypt/<client>/.", file=sys.stderr)
         sys.exit(1)
 
-    passwords = {rel_paths[f]: derive_password(master_secret, Path(rel_paths[f]).parts[0]) for f in html_files}
+    passwords = {rel_paths[f]: derive_password(master_secret, client_key(rel_paths[f])) for f in html_files}
 
     if args.show:
         print(f"\nDerived passwords for files in {SOURCE_DIR.relative_to(WORKSPACE)}/")
