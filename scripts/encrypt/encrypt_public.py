@@ -72,7 +72,9 @@ def encrypt_file(src: Path, output_dir: Path, password: str) -> bool:
     cmd = [
         "npx", "--yes", "staticrypt",
         str(src),
-        "--password", password,
+        # one argument with "=": a derived password can start with "-", and staticrypt
+        # would read a separate "-..." argument as its own flags
+        f"--password={password}",
         "-d", str(output_dir),
         "--short",
     ]
